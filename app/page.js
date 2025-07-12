@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function GameCollectionApp() {
   const [collection, setCollection] = useState([]);
@@ -13,22 +13,28 @@ export default function GameCollectionApp() {
     notes: "",
   });
 
+  // Charger depuis le localStorage au démarrage
+  useEffect(() => {
+    const saved = localStorage.getItem("biggys-collection");
+    if (saved) {
+      setCollection(JSON.parse(saved));
+    }
+  }, []);
+
+  // Sauvegarder à chaque changement
+  useEffect(() => {
+    localStorage.setItem("biggys-collection", JSON.stringify(collection));
+  }, [collection]);
+
   const handleAdd = () => {
     if (!form.title || !form.platform) return;
     setCollection([...collection, { ...form, id: Date.now() }]);
-    setForm({
-      title: "",
-      platform: "",
-      type: "game",
-      pricePaid: "",
-      estimatedValue: "",
-      notes: "",
-    });
+    setForm({ title: "", platform: "", type: "game", pricePaid: "", estimatedValue: "", notes: "" });
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto space-y-4">
-      <h1 className="text-xl font-bold text-center">Biggy's App – Collection jeux & consoles</h1>
+    <main className="p-4 max-w-xl mx-auto space-y-4">
+      <h1 className="text-xl font-bold text-center">Biggy's App - Collection jeux & consoles</h1>
 
       <div className="space-y-2 bg-white p-4 rounded-xl shadow">
         <input
@@ -54,4 +60,37 @@ export default function GameCollectionApp() {
         <input
           className="w-full border p-2 rounded"
           placeholder="Prix payé (€)"
-          type
+          type="number"
+          value={form.pricePaid}
+          onChange={(e) => setForm({ ...form, pricePaid: e.target.value })}
+        />
+        <input
+          className="w-full border p-2 rounded"
+          placeholder="Valeur estimée (€)"
+          type="number"
+          value={form.estimatedValue}
+          onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })}
+        />
+        <textarea
+          className="w-full border p-2 rounded"
+          placeholder="Notes, souvenirs..."
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+        />
+        <button onClick={handleAdd} className="w-full bg-blue-600 text-white py-2 rounded">Ajouter</button>
+      </div>
+
+      <div className="space-y-2">
+        {collection.map((item) => (
+          <div key={item.id} className="bg-white p-4 rounded shadow">
+            <div className="font-semibold">{item.title} ({item.platform})</div>
+            <div className="text-sm">Type : {item.type}</div>
+            {item.pricePaid && <div className="text-sm">Payé : {item.pricePaid} €</div>}
+            {item.estimatedValue && <div className="text-sm">Estimation : {item.estimatedValue} €</div>}
+            {item.notes && <div className="text-sm italic">{item.notes}</div>}
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
